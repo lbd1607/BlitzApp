@@ -1,0 +1,382 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Tailwind Styles */
+@layer base {
+  body,
+  html {
+    @apply min-h-screen m-0 p-0;
+  }
+  /* Scrollbar behavior */
+  * {
+    /*     scrollbar-width: thin; */
+    scrollbar-color: rgba(96, 96, 96, 0.5) rgba(255, 255, 255, 0);
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    display: none;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    background-color: #333;
+    border-radius: 20px;
+    border: none;
+  }
+  .scrollbar-hidden {
+    scrollbar-width: none;
+  }
+  body {
+    @apply bg-gray-200;
+  }
+
+  /*---------------------------------- Standard Text ------------------------------------*/
+  h1 {
+    @apply text-2xl font-sans not-italic font-bold text-gray-600;
+  }
+  h2 {
+    @apply text-xl font-sans not-italic font-bold text-gray-600;
+  }
+  h3 {
+    @apply text-lg font-sans not-italic font-medium text-gray-600;
+  }
+  p {
+    @apply text-sm font-sans not-italic font-normal text-gray-800;
+  }
+  /* ---------------------------------------------------- Navs --------------------------------------------------*/
+  Nav {
+    @apply p-20;
+  }
+  .navbar {
+    @apply w-full h-16 flex mb-8 pb-1 bg-white;
+  }
+  .navbar ul {
+    @apply pl-4;
+  }
+  .navbar li {
+    @apply float-left;
+  }
+  .navbar a {
+    @apply py-6 px-5 text-gray-400 no-underline text-base font-sans font-medium text-left;
+  }
+  .navbar a:hover {
+    @apply text-gray-800;
+  }
+  .navbar .brand {
+    @apply font-sans text-xl font-bold text-left p-4 ml-3 mr-3;
+  }
+  .avatar {
+    @apply m-4 object-center;
+  }
+  .avatar-canvas:hover {
+    @apply opacity-75;
+  }
+  .avatar:active {
+    @apply transition duration-100 ease-in-out animate-pulse;
+  }
+
+  /*---------------------------------------- Cards, Containers, and Modals --------------------------------------*/
+  /* Parent container of fullscreen list */
+  .list-card {
+    @apply card mx-20 mb-14;
+  }
+  /* Parent container for dashboard cards */
+  .dash-card {
+    @apply card mx-0 my-0 px-8;
+  }
+  /* Parent div for card container, wraps card-container and card */
+  .card-container-parent {
+    @apply flex w-full mx-auto justify-center;
+    height: calc(100vh - 6rem);
+  }
+  /* Parent div for modal card container, wraps card-container and card */
+  .modal-card-container-parent {
+    @apply flex w-full mx-auto justify-center;
+    height: calc(100vh - 24rem);
+  }
+  /* Parent div for cards */
+  .card-container {
+    @apply flex-auto mx-10 overflow-y-auto scrollbar-hidden rounded-lg max-h-screen;
+  }
+  /* Cards */
+  .card {
+    @apply relative flex-col break-words w-full shadow-lg rounded-lg bg-white border-0 px-8 py-6 overflow-hidden pb-8 mb-8;
+  }
+  /* Main column for cards */
+  .cardcol {
+    @apply rounded-t mb-0 px-6 py-6;
+  }
+  /* Parent for card inner scroll container */
+  .inner-scroll-parent {
+    @apply relative h-full;
+    /* fade-bottom */
+  }
+  /* Heading section for inner scroll container */
+  .inner-scroll-heading {
+    @apply absolute left-0 right-0 top-0 bg-white py-3;
+  }
+  /* Card inner scroll container */
+  .inner-scroll {
+    @apply absolute inset-0 overflow-auto mt-16 pb-4 space-y-4;
+  }
+  /* Item rows on master pages */
+  .itemrow {
+    @apply relative flex-col min-w-0 break-words w-full bg-white cursor-pointer p-3 pb-4 my-1 border border-gray-300;
+  }
+  /* On hover for item rows on master pages */
+  .itemrow:hover {
+    @apply bg-gray-100;
+  }
+  /* Item rows on master pages */
+  .itemrow-dark {
+    @apply relative flex-col min-w-0 break-words w-full bg-gray-600 cursor-pointer p-2 border border-gray-600;
+  }
+  /* On hover for item rows on master pages */
+  .itemrow-dark:hover {
+    @apply bg-gray-500;
+  }
+  /* Cards */
+  .modal-card {
+    @apply relative flex-col min-w-0 break-words w-full rounded-lg bg-white border-0 my-6 p-6 overflow-hidden;
+  }
+  /* Logout Modal */
+  .logout-modal {
+    @apply relative float-right min-w-0 bg-gray-600 shadow  rounded-md mb-6 mr-10 mt-14 p-1 w-32 h-24;
+  }
+  /* Style link for Log Out */
+  .logout-link {
+    @apply text-white text-left font-medium text-sm cursor-pointer;
+  }
+
+  /* Styles for modal container that renders content */
+  .modal.ReactModal__Content {
+    @apply mx-auto object-center justify-center box-content object-contain w-1/3;
+  }
+  /* Styles for standard modal overlay background */
+  .reg-modal .ReactModal__Overlay,
+  .reg-modal .ReactModal__Overlay--after-open {
+    /* bg-gray-100 bg-opacity-75 !important; */
+    /* background-blend-mode: lighten; */
+    @apply flex items-center justify-center bg-gray-800 bg-opacity-50 !important;
+  }
+
+  /* Styles for logout modal overlay background */
+  .no-overlay-modal .ReactModal__Overlay,
+  .no-overlay-modal .ReactModal__Overlay--after-open {
+    @apply bg-transparent !important;
+  }
+  /* Styles for bottom card fade */
+  .fade-bottom {
+    -webkit-mask-image: -webkit-gradient(
+      linear,
+      left 90%,
+      left-bottom,
+      to bottom,
+      white 98%,
+      transparent
+    );
+
+    mask-image: linear-gradient(to bottom, white 98%, transparent);
+  }
+
+  /*---------------------------------- Form Fields --------------------------------------*/
+  /* Div that wraps label and input or textarea */
+  .input-container {
+    @apply mb-16;
+  }
+  /* Input and textarea boxes */
+  .inputbox {
+    @apply rounded-md border border-gray-400 px-3 py-3 bg-white  w-full text-gray-800;
+  }
+  /* Input and textarea focus behavior */
+  .inputbox:focus {
+    @apply ring-2 ring-purple-300; /* border-green-500 */
+  }
+  /* Form field labels */
+  .formfieldlabel {
+    @apply text-base leading-8 font-sans not-italic font-medium text-gray-600 pb-4;
+  }
+  /* Select button */
+  .btn.selectbtn {
+    @apply border-gray-300 font-medium text-sm inline border w-48;
+  }
+  /* Hover style for selected select button */
+  .btn.selectbtn:hover {
+    @apply bg-gray-100;
+  }
+  /* Active style for selected select button */
+  .btn.selectbtn:active,
+  .btn.selectbtn:focus,
+  .btn.selectbtn:checked,
+  .selectedOption {
+    @apply bg-green-100;
+  }
+  /* For 2 x 2 workout type button grid layout */
+  .workoutTypeGrid {
+    @apply grid grid-cols-2 gap-2 place-content-center;
+  }
+  /* Main container for dropdown */
+  .dropdown-parent {
+    @apply w-full rounded-md border border-gray-400 px-2 py-2 bg-blue-100 text-gray-800 grid mb-4;
+  }
+  /* Custom field styling for dropdown */
+  .dropdown-field {
+    @apply w-full row-start-1 col-start-1 bg-transparent z-10 max-h-24 overflow-y-auto;
+  }
+  /* Styling for caret square icon */
+  .dropdown-caret {
+    @apply text-gray-500 row-start-1 col-start-1 z-0 justify-self-end;
+  }
+  /* Override existing select style */
+  select {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+  }
+
+  /*--------------------------------- Buttons and Links ---------------------------------*/
+  /* Link that goes back to the main component page */
+  .back-link {
+    @apply w-full lg:w-4/12 px-4;
+  }
+  /* Div that contains the save/cancel or edit/delete buttons */
+  .btn-div {
+    @apply flex flex-row justify-between px-6 pb-6;
+  }
+  /* Button container */
+  .btn {
+    @apply w-40 px-4 py-2 rounded-md sm:mr-2 mb-1;
+  }
+  /* A11y: Set focusring for custom buttons */
+  .btn:focus-visible {
+    outline: 1px dotted #000;
+  }
+  /* Button for submit/save */
+  .btn.save {
+    @apply bg-purple-600 text-white font-bold text-base;
+  }
+  /* Active styles for submit/save button  */
+  .btn.save:active {
+    @apply transition duration-100 ease-in-out ring-4 ring-purple-300  animate-pulse;
+  }
+  /* Hover styles for submit/save button  */
+  .btn.save:hover {
+    @apply bg-purple-700;
+  }
+  /* Button for edit */
+  .btn.edit {
+    @apply bg-white border border-purple-600 text-purple-600 font-bold text-base;
+  }
+  /* Active styles for edit button  */
+  .btn.edit:active {
+    @apply transition duration-100 ease-in-out ring-4 ring-purple-300 animate-pulse;
+  }
+  /* Hover styles for edit button  */
+  .btn.edit:hover {
+    @apply bg-purple-700 text-white;
+  }
+  /* Button for cancel/discard */
+  .btn.cancel {
+    @apply bg-pink-600 text-white font-bold text-base;
+  }
+  /* Active styles for cancel/discard button  */
+  .btn.cancel:active {
+    @apply transition duration-100 ease-in-out ring-4 ring-pink-300  animate-pulse;
+  }
+  /* Hover styles for cancel/discard  button  */
+  .btn.cancel:hover {
+    @apply bg-pink-700;
+  }
+  /* Button for delete */
+  .btn.delete {
+    @apply bg-white text-pink-600 border border-pink-600 font-bold text-base;
+  }
+  /* Active styles for delete button  */
+  .btn.delete:active {
+    @apply transition duration-100 ease-in-out ring-4 ring-pink-300  animate-pulse;
+  }
+  /* Hover styles for delete  button  */
+  .btn.delete:hover {
+    @apply bg-pink-700 text-white;
+  }
+  /* Style for days chip (Weekly Plans), default unchecked bg gray */
+  .daysChip {
+    @apply rounded-full h-10 w-10 flex items-center justify-center bg-gray-500 text-white font-bold select-none;
+  }
+  /* Make days chip smaller */
+  .daysChipSm {
+    @apply h-8 w-8 text-sm;
+  }
+  /* Style for days chip (Weekly Plans) if checked */
+  .daySelected {
+    @apply bg-purple-700 text-white font-bold;
+  }
+  /* Remove checkbox from input to allow custom styling*/
+  input.noCheckbox {
+    display: none;
+  }
+  /* Style background if input is checked */
+  input.noCheckbox:checked + label {
+    @apply daySelected;
+  }
+  /*---------------------------------------- Icons --------------------------------------*/
+  /* Styles for add (plus-circle) icon */
+  .addicon {
+    @apply text-green-500 mx-3 cursor-pointer;
+  }
+  /* On hover styles for add (plus-circle) icon */
+  .addicon:hover {
+    @apply text-green-600;
+  }
+  .addicon:active {
+    @apply transition duration-100 ease-in-out animate-pulse;
+  }
+  /* Styles for edit (pen) icon */
+  .editicon {
+    @apply text-purple-600 mx-3 cursor-pointer;
+  }
+  /* On hover styles for edit (pen) icon */
+  .editicon:hover {
+    @apply text-purple-700;
+  }
+  .editicon:active {
+    @apply transition duration-100 ease-in-out animate-pulse;
+  }
+  /* Styles for add (plus-circle) icon */
+  .deleteicon {
+    @apply text-pink-500 mx-3 cursor-pointer;
+  }
+  /* On hover styles for add (plus-circle) icon */
+  .deleteicon:hover {
+    @apply text-pink-600;
+  }
+  .deleteicon:active {
+    @apply transition duration-100 ease-in-out animate-pulse;
+  }
+  /* Styles for chevron icon */
+  .chevronicon {
+    @apply text-gray-400 mx-3 cursor-pointer opacity-75;
+  }
+  /* On hover styles for add (plus-circle) icon */
+  .chevronicon:hover {
+    @apply text-gray-600 opacity-100;
+  }
+  .chevronicon:active {
+    @apply transition duration-100 ease-in-out animate-pulse;
+  }
+  /*------------------------------- Error Handling and Alerts ----------------------------*/
+  /* Error message text */
+  .error {
+    @apply text-red-600 font-medium mb-5 pb-6;
+  }
+  /* Red asterisk for required fields wrapped in div with this class */
+  .required-field::before {
+    content: "* ";
+    color: red;
+  }
+}

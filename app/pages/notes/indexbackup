@@ -1,0 +1,172 @@
+import { Fragment, Suspense, useState, useRef } from "react"
+import {
+  Head,
+  Link,
+  usePaginatedQuery,
+  useRouter,
+  BlitzPage,
+  Routes,
+  useAuthenticatedSession,
+} from "blitz"
+import Layout from "app/core/layouts/Layout"
+import getNotes from "app/notes/queries/getNotes"
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
+
+const ITEMS_PER_PAGE = 100
+
+export const NotesList = () => {
+  const router = useRouter()
+  const page = Number(router.query.page) || 0
+  const [{ notes, hasMore }] = usePaginatedQuery(getNotes, {
+    orderBy: { id: "asc" },
+    skip: ITEMS_PER_PAGE * page,
+    take: ITEMS_PER_PAGE,
+  })
+
+  const goToPreviousPage = () => router.push({ query: { page: page - 1 } })
+  const goToNextPage = () => router.push({ query: { page: page + 1 } })
+
+  const randid = () => {
+    var i = () => {
+      return ((1 + Math.random()) * 0x10000) | 0
+    }
+    const daygroupid = i() + i() + i() + i() + i() + i()
+    return daygroupid
+  }
+  const noteObject = [{ id: randid() }]
+
+  const rowItems = {
+    [randid()]: {
+      items: noteObject,
+    },
+  }
+  const [rows, setRows] = useState(rowItems)
+
+  const onDragEnd = (result, rows, setRows) => {
+    if (!result.destination) return
+
+    const { source, destination } = result
+    const row = rows[source.droppableId]
+    const copiedItems = [...row.items]
+    const [removed] = copiedItems.splice(source.index, 1)
+    copiedItems.splice(destination.index, 0, removed)
+
+    setRows({
+      ...rows,
+      [source.droppableId]: {
+        ...row,
+        items: copiedItems,
+      },
+    })
+    console.log(rows)
+  }
+
+  function getStyle(style, snapshot) {
+    if (!snapshot.isDropAnimating) {
+      return style
+    }
+    const { moveTo, curve, duration } = snapshot.dropAnimation
+
+    const translate = `translate(${moveTo.x}px, ${moveTo.y}px)`
+
+    return {
+      ...style,
+      transform: `${translate}`,
+      transition: `all ${curve} ${duration + 0.5}s`,
+    }
+  }
+
+  return (
+    <DragDropContext onDragEnd={(result) => onDragEnd(result, rows, setRows)}>
+      {/* <DragDropContext onDragEnd={onDragEnd}> */}
+      {Object.entries(rows).map(([id, row]) => {
+        return (
+          <Droppable droppableId={id} key={id}>
+            {(provided, snapshot) => {
+              return (
+                <div
+                  {...provided.droppableProps}
+                  ref={provided.innerRef}
+                  style={{
+                    background: snapshot.isDraggingOver ? "lightblue" : "",
+                  }}
+                >
+                  {/* {row.items.map((item) => {
+                    return ( */}
+
+                  {notes.map((note, index) => (
+                    <ul key={note.id}>
+                      <Link href={Routes.ShowNotePage({ noteId: note.id })}>
+                        <Fragment>
+                          {/* wrapped in fragment to avoid ref error */}
+
+                          <Draggable
+                            key={note.id.toString()}
+                            draggableId={note.id.toString()}
+                            index={index}
+                          >
+                            {(provided, snapshot) => {
+                              return (
+                                <div
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  style={getStyle(provided.draggableProps.style, snapshot)}
+                                >
+                                  <li className="itemrow">
+                                    <a className="select-none">{note.noteName}</a>
+                                  </li>
+                                </div>
+                              )
+                            }}
+                          </Draggable>
+                        </Fragment>
+                      </Link>
+                    </ul>
+                  ))}
+                  {provided.placeholder}
+                </div>
+              )
+            }}
+          </Droppable>
+        )
+      })}
+    </DragDropContext>
+    // </div>
+  )
+}
+
+const NotesPage: BlitzPage = () => {
+  return (
+    <>
+      <Head>
+        <title>Notes</title>
+      </Head>
+
+      <div className="card-container-parent">
+        <div className="list-card">
+          <div className="inner-scroll-parent">
+            <div className="inner-scroll-heading">
+              <h1>Notes</h1>
+            </div>
+            <div className="inner-scroll">
+              <div className="">
+                <Suspense fallback={<div>Loading...</div>}>
+                  <NotesList />
+                </Suspense>
+                <button type="button" className="btn save">
+                  <Link href="/notes/new">New</Link>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}
+
+NotesPage.authenticate = true
+NotesPage.getLayout = (page) => <Layout>{page}</Layout>
+
+export default NotesPage
