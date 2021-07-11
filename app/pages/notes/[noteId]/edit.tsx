@@ -21,11 +21,11 @@ export const EditNote = () => {
   return (
     <>
       <Head>
-        <title>Edit Note {note.id}</title>
+        <title>Edit {note.noteName}</title>
       </Head>
 
       <div>
-        <h1>Edit Note {note.id}</h1>
+        <h1>Edit {note.noteName}</h1>
         <pre>{JSON.stringify(note)}</pre>
 
         <NoteForm

@@ -65,9 +65,10 @@ model Token {
 // }
 
 model Notes {
-  id       Int     @id @default(autoincrement())
-  noteName String  @unique
-  noteBody String?
+  id        Int     @id @default(autoincrement())
+  noteName  String  @unique
+  noteBody  String?
+  itemOrder Int?
 }
 
 // model Note {
