@@ -1,4 +1,4 @@
-import { Fragment, Suspense, useState, useRef, useEffect } from "react"
+import { Fragment, Suspense, useState } from "react"
 import {
   Head,
   Link,
@@ -6,21 +6,17 @@ import {
   useRouter,
   BlitzPage,
   Routes,
-  useAuthenticatedSession,
   useMutation,
   useParam,
   useQuery,
-  setQueryData,
 } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import getNotes from "app/notes/queries/getNotes"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
+import updateNote from "app/notes/mutations/updateNote"
+import { FORM_ERROR } from "app/notes/components/NoteForm"
 
 const ITEMS_PER_PAGE = 100
-
-import getNote from "app/notes/queries/getNote"
-import updateNote from "app/notes/mutations/updateNote"
-import { NoteForm, FORM_ERROR } from "app/notes/components/NoteForm"
 
 export const NotesList = () => {
   const router = useRouter()
@@ -30,9 +26,10 @@ export const NotesList = () => {
     skip: ITEMS_PER_PAGE * page,
     take: ITEMS_PER_PAGE,
   })
-
+  //State for note items (each row item)
   const [noteItem, updateNoteItem] = useState(notes)
 
+  //Get styles for dnd items
   function getStyle(style, snapshot) {
     if (!snapshot.isDropAnimating) {
       return style
@@ -48,12 +45,13 @@ export const NotesList = () => {
       // background: "rgba(209, 250, 229)",
     }
   }
-  //
+  //Fetch note id
   const noteId = useParam("noteId", "number")
-  //var currentOrder = useParam("itemOrder", "number")
 
+  //Update mutation to update note itemOrder
   const [updateNoteMutation] = useMutation(updateNote)
 
+  //Post updated itemOrder values to the noteItem passed in from handleOnDragEnd()
   async function postUpdatedOrder(values) {
     try {
       const updated = await updateNoteMutation({
@@ -71,21 +69,29 @@ export const NotesList = () => {
     }
   }
 
-  function handleOnDragEnd(result, note) {
-    // console.log(result)
-    if (!result.destination) return
-    const items = Array.from(noteItem)
-    const [reorderedItem] = items.splice(result.source.index, 1)
-    items.splice(result.destination.index, 0, reorderedItem || result.source.index)
+  //Handle onDragEnd so state changes are persisted in UI and can be posted to DB with hooks
+  function handleOnDragEnd(result) {
+    if (!result.destination) return //Check if result exists
 
-    var newOrder = result.destination.index
-    if (!reorderedItem) return
+    const items = Array.from(noteItem) //Create array 'items' out of noteItem
+    const [reorderedItem] = items.splice(result.source.index, 1) //Splice result source values
+    items.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
 
-    reorderedItem.itemOrder = newOrder
+    if (!reorderedItem) return //Check if reorderedItem exists
 
-    updateNoteItem(items)
-    postUpdatedOrder(reorderedItem)
+    //For each item in the items array, assign the new indexes as the item orders and post to the database using an async function and the existing updateNotes mutation
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item) {
+        var newOrder = items.indexOf(item)
+        item.itemOrder = newOrder
+      }
+      postUpdatedOrder(item)
+    }
 
+    updateNoteItem(items) //Update the selected note item to persist change in UI
+
+    //Debug
     console.log(items)
     console.log(reorderedItem)
   }
