@@ -29,7 +29,9 @@ export const EditNote = () => {
         <pre>{JSON.stringify(note)}</pre>
 
         <NoteForm
-          submitText="Update Note"
+          submitText="Save"
+          cancelText="Cancel"
+          cancelURL="/notes"
           // TODO use a zod schema for form validation
           //  - Tip: extract mutation's schema into a shared `validations.ts` file and
           //         then import and use it here
@@ -43,6 +45,16 @@ export const EditNote = () => {
               })
               await setQueryData(updated)
               router.push(Routes.ShowNotePage({ noteId: updated.id }))
+            } catch (error) {
+              console.error(error)
+              return {
+                [FORM_ERROR]: error.toString(),
+              }
+            }
+          }}
+          onCancel={async () => {
+            try {
+              router.back()
             } catch (error) {
               console.error(error)
               return {

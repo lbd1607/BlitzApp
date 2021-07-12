@@ -97,32 +97,36 @@ export const NotesList = () => {
   }
 
   return (
-    <DragDropContext onDragEnd={handleOnDragEnd}>
-      <Droppable droppableId="notes">
-        {(provided, snapshot) => (
-          <ul {...provided.droppableProps} ref={provided.innerRef}>
-            {noteItem.map(({ id, noteName }, index) => (
-              <Draggable key={id} draggableId={id.toString()} index={index} className="">
-                {(provided, snapshot) => (
-                  <Link href={Routes.ShowNotePage({ noteId: id })}>
-                    <li
-                      className="itemrow"
-                      {...provided.draggableProps}
-                      {...provided.dragHandleProps}
-                      ref={provided.innerRef}
-                      style={getStyle(provided.draggableProps.style, snapshot)}
-                    >
-                      <a className="select-none">{noteName}</a>
-                    </li>
-                  </Link>
-                )}
-              </Draggable>
-            ))}
-            {provided.placeholder}
-          </ul>
-        )}
-      </Droppable>
-    </DragDropContext>
+    <div className="cardcol">
+      <div className="mb-3">
+        <DragDropContext onDragEnd={handleOnDragEnd}>
+          <Droppable droppableId="notes">
+            {(provided, snapshot) => (
+              <ul {...provided.droppableProps} ref={provided.innerRef}>
+                {noteItem.map(({ id, noteName }, index) => (
+                  <Draggable key={id} draggableId={id.toString()} index={index} className="">
+                    {(provided, snapshot) => (
+                      <Link href={Routes.ShowNotePage({ noteId: id })}>
+                        <li
+                          className="itemrow"
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          ref={provided.innerRef}
+                          style={getStyle(provided.draggableProps.style, snapshot)}
+                        >
+                          <a className="select-none">{noteName}</a>
+                        </li>
+                      </Link>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </ul>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </div>
+    </div>
   )
 }
 
