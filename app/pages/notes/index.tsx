@@ -9,12 +9,15 @@ import {
   useMutation,
   useParam,
   useQuery,
+  generateToken,
 } from "blitz"
 import Layout from "app/core/layouts/Layout"
 import getNotes from "app/notes/queries/getNotes"
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd"
 import updateNote from "app/notes/mutations/updateNote"
 import { FORM_ERROR } from "app/notes/components/NoteForm"
+import { render } from "test/utils"
+import NewNotePage from "./new"
 
 const ITEMS_PER_PAGE = 100
 
@@ -30,7 +33,7 @@ export const NotesList = () => {
   const [noteItem, updateNoteItem] = useState(notes)
 
   //Get styles for dnd items
-  function getStyle(style, snapshot) {
+  const getStyle = (style, snapshot) => {
     if (!snapshot.isDropAnimating) {
       return style
     }
@@ -42,7 +45,8 @@ export const NotesList = () => {
       ...style,
       transform: `${translate}`,
       transition: `all ${curve} ${duration + 0.5}s`,
-      // background: "rgba(209, 250, 229)",
+
+      background: "rgba(209, 250, 229)",
     }
   }
   //Fetch note id
@@ -70,63 +74,154 @@ export const NotesList = () => {
   }
 
   //Handle onDragEnd so state changes are persisted in UI and can be posted to DB with hooks
-  function handleOnDragEnd(result) {
+  const handleOnDragEnd = (result, rows, setRows) => {
     if (!result.destination) return //Check if result exists
 
-    const items = Array.from(noteItem) //Create array 'items' out of noteItem
-    const [reorderedItem] = items.splice(result.source.index, 1) //Splice result source values
-    items.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
+    const sourceRow = result.source.id
+    const destRow = result.destination.id
 
-    if (!reorderedItem) return //Check if reorderedItem exists
+    if (result.source.id !== result.destination.id) {
+      const items = Array.from(noteItem) //Create array 'items' out of noteItem
+      const [reorderedItem] = items.splice(result.source.index, 1) //Splice result source values
+      items.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
 
-    //For each item in the items array, assign the new indexes as the item orders and post to the database using an async function and the existing updateNotes mutation
-    for (let i = 0; i < items.length; i++) {
-      const item = items[i]
-      if (item) {
-        var newOrder = items.indexOf(item)
-        item.itemOrder = newOrder
+      if (!reorderedItem) return //Check if reorderedItem exists
+
+      //For each item in the items array, assign the new indexes as the item orders and post to the database using an async function and the existing updateNotes mutation
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i]
+        if (item) {
+          var newOrder = items.indexOf(item)
+          item.itemOrder = newOrder
+        }
+        postUpdatedOrder(item)
       }
-      postUpdatedOrder(item)
+
+      updateNoteItem(items) //Update the selected note item to persist change in UI
+
+      //Debug
+      console.log(items)
+      console.log(reorderedItem)
+    } else {
+      /*     const sourceRowItems = Array.from(sourceRow.noteItem)
+      sourceRowItems.splice(result.source.index, 1) */
+
+      const destRowItems = Array.from(noteItem)
+      const [reorderedItem] = destRowItems.splice(result.source.index, 1) //Splice result source values
+      destRowItems.splice(result.destination.index, 0, reorderedItem || result.source.index)
+
+      if (!reorderedItem) return //Check if reorderedItem exists
+
+      updateNoteItem(destRowItems) //Update the selected note item to persist change in UI
     }
+  }
 
-    updateNoteItem(items) //Update the selected note item to persist change in UI
+  const randid = () => {
+    var i = () => {
+      return ((1 + Math.random()) * 0x10000) | 0
+    }
+    const daygroupid = i() + i() + i() + i() + i() + i()
+    return daygroupid
+  }
 
-    //Debug
-    console.log(items)
-    console.log(reorderedItem)
+  const [groups, setGroups] = useState([{ id: randid() }])
+
+  const addGroup = () => {
+    setGroups([...groups, { id: randid() }])
+  }
+
+  const deleteGroup = (id) => {
+    const values = [...groups]
+    values.splice(
+      values.findIndex((value) => value.id === id),
+      1
+    )
+    setGroups(values)
+  }
+
+  const InitialGroup = () => {
+    return (
+      <>
+        <div className="cardcol mb-3">
+          <div className="bg-blue-200 p-5">
+            <div className="mb-10">
+              {noteItem.map(({ id, noteName }, index) => (
+                <Draggable key={id} draggableId={id.toString()} index={index} className="">
+                  {(provided, snapshot) => (
+                    <Link href={Routes.ShowNotePage({ noteId: id })}>
+                      <li
+                        className="itemrow"
+                        {...provided.draggableProps}
+                        {...provided.dragHandleProps}
+                        ref={provided.innerRef}
+                        style={getStyle(provided.draggableProps.style, snapshot)}
+                      >
+                        <a className="select-none">{noteName}</a>
+                      </li>
+                    </Link>
+                  )}
+                </Draggable>
+              ))}
+            </div>
+          </div>
+        </div>
+        {groups.map((group) => (
+          <div key={group.id}>
+            <button onClick={addGroup} className="col-span-1 btn save">
+              Create Group
+            </button>
+            <button
+              className="col-span-1 btn cancel"
+              disabled={groups.length === 1}
+              onClick={() => deleteGroup(group.id)}
+              type="button"
+            >
+              Delete Group
+            </button>
+            <div className="cardcol mb-3">
+              <div className="bg-blue-200 p-5">
+                <div className="mb-10">
+                  {(provided, snapshot) => (
+                    <ul {...provided.droppableProps} ref={provided.innerRef}>
+                      <Draggable className="">
+                        {(provided, snapshot) => (
+                          <li
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            ref={provided.innerRef}
+                            style={getStyle(provided.draggableProps.style, snapshot)}
+                          ></li>
+                        )}
+                      </Draggable>
+
+                      {provided.placeholder}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </>
+    )
   }
 
   return (
-    <div className="cardcol">
-      <div className="mb-3">
-        <DragDropContext onDragEnd={handleOnDragEnd}>
-          <Droppable droppableId="notes">
-            {(provided, snapshot) => (
-              <ul {...provided.droppableProps} ref={provided.innerRef}>
-                {noteItem.map(({ id, noteName }, index) => (
-                  <Draggable key={id} draggableId={id.toString()} index={index} className="">
-                    {(provided, snapshot) => (
-                      <Link href={Routes.ShowNotePage({ noteId: id })}>
-                        <li
-                          className="itemrow"
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          ref={provided.innerRef}
-                          style={getStyle(provided.draggableProps.style, snapshot)}
-                        >
-                          <a className="select-none">{noteName}</a>
-                        </li>
-                      </Link>
-                    )}
-                  </Draggable>
-                ))}
-                {provided.placeholder}
-              </ul>
-            )}
-          </Droppable>
-        </DragDropContext>
-      </div>
-    </div>
+    <>
+      <DragDropContext onDragEnd={handleOnDragEnd}>
+        <Droppable droppableId="notes">
+          {(provided, snapshot) => (
+            <ul {...provided.droppableProps} ref={provided.innerRef}>
+              <>
+                <InitialGroup />
+              </>
+
+              {provided.placeholder}
+            </ul>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </>
   )
 }
 
@@ -140,8 +235,17 @@ const NotesPage: BlitzPage = () => {
       <div className="card-container-parent">
         <div className="list-card">
           <div className="inner-scroll-parent">
-            <div className="inner-scroll-heading">
-              <h1>Notes</h1>
+            <div className="inner-scroll-heading grid grid-cols-12">
+              <h1 className="col-span-1">Notes</h1>
+              <div className="col-span-1">
+                <Fragment>
+                  <Link href="/notes/new">
+                    <button type="button" className="btn save">
+                      Add Note
+                    </button>
+                  </Link>
+                </Fragment>
+              </div>
             </div>
             <div className="inner-scroll">
               <div className="">
@@ -149,13 +253,6 @@ const NotesPage: BlitzPage = () => {
                   <NotesList />
                 </Suspense>
               </div>
-              <Fragment>
-                <Link href="/notes/new">
-                  <button type="button" className="btn save">
-                    New
-                  </button>
-                </Link>
-              </Fragment>
             </div>
           </div>
         </div>
