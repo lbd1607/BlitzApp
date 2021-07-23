@@ -74,11 +74,11 @@ export const NotesList = () => {
   }
 
   //Handle onDragEnd so state changes are persisted in UI and can be posted to DB with hooks
-  const handleOnDragEnd = (result, rows, setRows) => {
-    if (!result.destination) return //Check if result exists
+  const handleOnDragEnd = (result) => {
+    /* const sourceRow = result.source.id
+    const destRow = result.destination.id */
 
-    const sourceRow = result.source.id
-    const destRow = result.destination.id
+    if (!result.destination) return //Check if result exists
 
     if (result.source.id !== result.destination.id) {
       const items = Array.from(noteItem) //Create array 'items' out of noteItem
@@ -103,16 +103,23 @@ export const NotesList = () => {
       console.log(items)
       console.log(reorderedItem)
     } else {
-      /*     const sourceRowItems = Array.from(sourceRow.noteItem)
-      sourceRowItems.splice(result.source.index, 1) */
-
-      const destRowItems = Array.from(noteItem)
-      const [reorderedItem] = destRowItems.splice(result.source.index, 1) //Splice result source values
-      destRowItems.splice(result.destination.index, 0, reorderedItem || result.source.index)
+      const destItems = Array.from(noteItem) //Create array 'items' out of noteItem
+      const [reorderedItem] = destItems.splice(result.source.index, 1) //Splice result source values
+      destItems.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
 
       if (!reorderedItem) return //Check if reorderedItem exists
 
-      updateNoteItem(destRowItems) //Update the selected note item to persist change in UI
+      //For each item in the items array, assign the new indexes as the item orders and post to the database using an async function and the existing updateNotes mutation
+      for (let i = 0; i < destItems.length; i++) {
+        const destItem = destItems[i]
+        if (destItem) {
+          var newOrder = destItems.indexOf(destItem)
+          destItem.itemOrder = newOrder
+        }
+        postUpdatedOrder(destItem)
+      }
+
+      updateNoteItem(destItems) //Update the selected note item to persist change in UI
     }
   }
 
@@ -123,12 +130,17 @@ export const NotesList = () => {
     const daygroupid = i() + i() + i() + i() + i() + i()
     return daygroupid
   }
-
-  const [groups, setGroups] = useState([{ id: randid() }])
+  // const [noteItem, updateNoteItem] = useState(notes)
+  const [groups, setGroups] = useState([{ id: randid(), noteName: "" }])
 
   const addGroup = () => {
-    setGroups([...groups, { id: randid() }])
+    /*  updateNoteItem([...noteItem, { id: randid(), noteName: "", noteBody: "", itemOrder: null }]) */
+    setGroups([...groups, { id: randid(), noteName: "" }])
   }
+
+  /*   const addGroup = () => {
+    setGroups([...groups, { id: randid() }])
+  } */
 
   const deleteGroup = (id) => {
     const values = [...groups]
@@ -139,85 +151,120 @@ export const NotesList = () => {
     setGroups(values)
   }
 
-  const InitialGroup = () => {
+  /* const InitialGroup = () => {
     return (
-      <>
-        <div className="cardcol mb-3">
-          <div className="bg-blue-200 p-5">
-            <div className="mb-10">
-              {noteItem.map(({ id, noteName }, index) => (
-                <Draggable key={id} draggableId={id.toString()} index={index} className="">
-                  {(provided, snapshot) => (
-                    <Link href={Routes.ShowNotePage({ noteId: id })}>
-                      <li
-                        className="itemrow"
-                        {...provided.draggableProps}
-                        {...provided.dragHandleProps}
-                        ref={provided.innerRef}
-                        style={getStyle(provided.draggableProps.style, snapshot)}
-                      >
-                        <a className="select-none">{noteName}</a>
-                      </li>
-                    </Link>
-                  )}
-                </Draggable>
-              ))}
-            </div>
-          </div>
-        </div>
-        {groups.map((group) => (
-          <div key={group.id}>
-            <button onClick={addGroup} className="col-span-1 btn save">
-              Create Group
-            </button>
-            <button
-              className="col-span-1 btn cancel"
-              disabled={groups.length === 1}
-              onClick={() => deleteGroup(group.id)}
-              type="button"
-            >
-              Delete Group
-            </button>
-            <div className="cardcol mb-3">
-              <div className="bg-blue-200 p-5">
-                <div className="mb-10">
-                  {(provided, snapshot) => (
-                    <ul {...provided.droppableProps} ref={provided.innerRef}>
-                      <Draggable className="">
-                        {(provided, snapshot) => (
-                          <li
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            ref={provided.innerRef}
-                            style={getStyle(provided.draggableProps.style, snapshot)}
-                          ></li>
-                        )}
-                      </Draggable>
-
-                      {provided.placeholder}
-                    </ul>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </>
+     
     )
-  }
+  } */
 
   return (
     <>
       <DragDropContext onDragEnd={handleOnDragEnd}>
         <Droppable droppableId="notes">
           {(provided, snapshot) => (
-            <ul {...provided.droppableProps} ref={provided.innerRef}>
+            <div {...provided.droppableProps} ref={provided.innerRef}>
               <>
-                <InitialGroup />
-              </>
+                {/* {groups.map(({ id }, index) => ( */}
+                <div className="cardcol mb-3">
+                  <div className="bg-blue-200 p-5">
+                    <ul className="">
+                      {noteItem.map(({ id, noteName }, index) => (
+                        <Draggable
+                          key={id}
+                          draggableId={id.toString()}
+                          // /* index={index} */ index={index && id}
+                          index={index}
+                          className=""
+                        >
+                          {(provided, snapshot) => (
+                            <Link href={Routes.ShowNotePage({ noteId: id })}>
+                              <li
+                                className="itemrow"
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                ref={provided.innerRef}
+                                style={getStyle(provided.draggableProps.style, snapshot)}
+                              >
+                                <a className="select-none">{noteName}</a>
+                              </li>
+                            </Link>
+                          )}
+                        </Draggable>
+                      ))}
+                    </ul>
+                  </div>
+                  {/*    <button onClick={addGroup} className="col-span-1 btn save">
+                    Create Group
+                  </button> */}
+                </div>
+                {/* ))} */}
+                <Fragment>
+                  {groups.map(({ id }, index) => (
+                    <div key={id}>
+                      <button onClick={addGroup} className="col-span-1 btn save">
+                        Create Group
+                      </button>
+                      <button
+                        className="col-span-1 btn cancel"
+                        disabled={groups.length === 1}
+                        onClick={() => deleteGroup(id)}
+                        type="button"
+                      >
+                        Delete Group
+                      </button>
+                      <div className="cardcol mb-3">
+                        <div className="bg-blue-200 p-5">
+                          <div className="h-10">
+                            {/*   {(provided, snapshot) => (
+                              <ul {...provided.droppableProps} ref={provided.innerRef}>
+                                <Draggable
+                                  className=""
+                                  draggableId={id.toString()}
+                                  index={index}
+                                  key={id}
+                                >
+                                  {(provided, snapshot) => (
+                                    <li
+                                      {...provided.draggableProps}
+                                      {...provided.dragHandleProps}
+                                      ref={provided.innerRef}
+                                      style={getStyle(provided.draggableProps.style, snapshot)}
+                                    ></li>
+                                  )}
+                                </Draggable>
 
+                         
+                              </ul>
+                            )} */}
+
+                            <ul {...provided.droppableProps} ref={provided.innerRef}>
+                              <Draggable
+                                className=""
+                                draggableId={id.toString()}
+                                key={id}
+                                // index={`${index}-${id}`}
+                                // index={index && id}
+                                index={index + noteItem.length}
+                              >
+                                {(provided, snapshot) => (
+                                  <li
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    ref={provided.innerRef}
+                                    style={getStyle(provided.draggableProps.style, snapshot)}
+                                  ></li>
+                                )}
+                              </Draggable>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </Fragment>
+              </>
               {provided.placeholder}
-            </ul>
+            </div>
           )}
         </Droppable>
       </DragDropContext>
