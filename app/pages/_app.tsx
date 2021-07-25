@@ -13,7 +13,6 @@ import "app/core/styles/index.css"
 
 export default function App({ Component, pageProps }: AppProps) {
   const getLayout = Component.getLayout || ((page) => page)
-
   return (
     <Suspense fallback="Loading...">
       <ErrorBoundary

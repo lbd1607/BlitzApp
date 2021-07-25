@@ -57,12 +57,12 @@ export const NotesList = () => {
   }
 
   //Handle onDragEnd so state changes are persisted in UI and can be posted to DB with hooks
-  const handleOnDragEnd = (result, groups, setGroups) => {
+  const handleOnDragEnd = (result, groupid) => {
     if (!result.destination) return //Check if result exists
 
-    const group = groups[result.source.id]
+    if (result.source.id === result.destination.id && groupid === 0) {
+      console.log("if " + groupid.toString())
 
-    if (result.source.id !== result.destination.id) {
       const items = Array.from(noteItem) //Create array 'items' out of noteItem
       const [reorderedItem] = items.splice(result.source.index, 1) //Splice result source values
       items.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
@@ -79,43 +79,34 @@ export const NotesList = () => {
         postUpdatedOrder(item)
       }
 
-      /*  setGroups([...groups, { groupid: result.destination.id }], [...group, { items: items }]) */
-      setGroups([...groups, { groupid: result.destination.id, idx: counter, items: items }])
-
       updateNoteItem(items) //Update the selected note item to persist change in UI
-
-      /* setGroups([...groups, { groupid: result.source.id, items: items }]) */
-      //setGroups({ groupid: result.source.id, items: items })
 
       //Debug
       console.log(items)
       console.log(reorderedItem)
     } else {
-      /*  const group = groups[result.source.id] */
-      /*  const copiedItems = [...group.items] */
-      const items = Array.from(noteItem) //Create array 'items' out of noteItem
-      const [reorderedItem] = items.splice(result.source.index, 1) //Splice result source values
-      items.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
+      console.log("else " + groupid.toString())
+
+      const destItems = Array.from(noteItem) //Create array 'items' out of noteItem
+      const [reorderedItem] = destItems.splice(result.source.index, 1) //Splice result source values
+      destItems.splice(result.destination.index, 0, reorderedItem || result.source.index) //Splice result destination values
 
       if (!reorderedItem) return //Check if reorderedItem exists
 
       //For each item in the items array, assign the new indexes as the item orders and post to the database using an async function and the existing updateNotes mutation
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i]
-        if (item) {
-          var newOrder = items.indexOf(item)
-          item.itemOrder = newOrder
+      for (let i = 0; i < destItems.length; i++) {
+        const destItem = destItems[i]
+        if (destItem) {
+          var newOrder = destItems.indexOf(destItem)
+          destItem.itemOrder = newOrder
         }
-        postUpdatedOrder(item)
+        postUpdatedOrder(destItem)
       }
 
-      /* setGroups([...groups, { groupid: result.destination.id }], [...group, { items: items }]) */
-      setGroups([...groups, { groupid: result.destination.id, idx: counter, items: items }])
-
-      updateNoteItem(items) //Update the selected note item to persist change in UI
+      updateNoteItem(destItems) //Update the selected note item to persist change in UI
 
       //Debug
-      console.log(items)
+      console.log(destItems)
       console.log(reorderedItem)
     }
   }
@@ -130,43 +121,11 @@ export const NotesList = () => {
 
   var counter = noteItem.length
 
-  /*   const [groups, setGroups] = useState([{ groupid: randid(), idx: counter }]) */
-  const noteData = [
-    <Fragment key={randid()}>
-      <ul className="">
-        {noteItem.map(({ id, noteName }, index) => (
-          <Draggable key={id} draggableId={id.toString()} index={index} className="" groupid={0}>
-            {(provided, snapshot) => (
-              <Link href={Routes.ShowNotePage({ noteId: id })}>
-                <li
-                  className="itemrow"
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  ref={provided.innerRef}
-                  style={getStyle(provided.draggableProps.style, snapshot)}
-                >
-                  <a className="select-none">{noteName}</a>
-                </li>
-              </Link>
-            )}
-          </Draggable>
-        ))}
-      </ul>
-    </Fragment>,
-  ]
+  const [groups, setGroups] = useState([{ groupid: randid(), idx: counter }])
 
-  const [groups, setGroups] = useState([{ groupid: randid(), idx: counter, items: noteData }])
-
-  /*   const dataObjects = () => {
-    var first = setGroups([...groups, { groupid: randid(), idx: counter, items: noteData }])
-
-    var subsequent = setGroups([...groups, { groupid: randid(), idx: counter, items: [] }])
-  } */
-
-  const addGroup = () => {
+  const addGroup = ({ ...provided }) => {
     counter + 1
-    // setGroups([...groups, { groupid: randid(), idx: counter }])
-    setGroups([...groups, { groupid: randid(), idx: counter, items: [] }])
+    setGroups([...groups, { groupid: randid(), idx: counter }])
   }
 
   const deleteGroup = (groupid) => {
@@ -196,40 +155,59 @@ export const NotesList = () => {
     }
   }
 
-  const noteItems = [
-    <Fragment key={randid()}>
-      <ul className="">
-        {noteItem.map(({ id, noteName }, index) => (
-          <Draggable key={id} draggableId={id.toString()} index={index} className="" groupid={0}>
-            {(provided, snapshot) => (
-              <Link href={Routes.ShowNotePage({ noteId: id })}>
-                <li
-                  className="itemrow"
-                  {...provided.draggableProps}
-                  {...provided.dragHandleProps}
-                  ref={provided.innerRef}
-                  style={getStyle(provided.draggableProps.style, snapshot)}
-                >
-                  <a className="select-none">{noteName}</a>
-                </li>
-              </Link>
-            )}
-          </Draggable>
-        ))}
-      </ul>
-    </Fragment>,
-  ]
-
   return (
     <>
-      <DragDropContext onDragEnd={(result) => handleOnDragEnd(result, groups, setGroups)}>
-        {Object.entries(groups).map(([groupid, group], index) => {
-          return (
-            <Fragment key={groupid}>
-              <Droppable droppableId={groupid}>
-                {(provided, snapshot) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef}>
-                    <>
+      <DragDropContext onDragEnd={handleOnDragEnd}>
+        <Droppable droppableId="notes">
+          {(provided, snapshot) => (
+            <div {...provided.droppableProps} ref={provided.innerRef}>
+              <>
+                <div className="cardcol mb-3">
+                  <div
+                    style={{ background: snapshot.isDraggingOver ? "lightblue" : "lightgrey" }}
+                    className="bg-blue-200 p-5"
+                  >
+                    <ul className="">
+                      {noteItem.map(({ id, noteName }, index) => (
+                        <Draggable
+                          key={id}
+                          draggableId={id.toString()}
+                          index={index}
+                          className=""
+                          groupid={0}
+                        >
+                          {(provided, snapshot) => (
+                            <Link href={Routes.ShowNotePage({ noteId: id })}>
+                              <li
+                                className="itemrow"
+                                {...provided.draggableProps}
+                                {...provided.dragHandleProps}
+                                ref={provided.innerRef}
+                                style={getStyle(provided.draggableProps.style, snapshot)}
+                              >
+                                <a className="select-none">{noteName}</a>
+                              </li>
+                            </Link>
+                          )}
+                        </Draggable>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <Fragment>
+                  {groups.map(({ groupid, idx }, index) => (
+                    <div key={groupid}>
+                      <button onClick={addGroup} className="col-span-1 btn save">
+                        Create Group
+                      </button>
+                      <button
+                        className="col-span-1 btn cancel"
+                        disabled={groups.length === 1}
+                        onClick={() => deleteGroup(groupid)}
+                        type="button"
+                      >
+                        Delete Group
+                      </button>
                       <div className="cardcol mb-3">
                         <div
                           style={{
@@ -237,32 +215,35 @@ export const NotesList = () => {
                           }}
                           className="bg-blue-200 p-5"
                         >
-                          {group.items.map((item, index) => {
-                            return <Fragment key={randid()}>{noteItems}</Fragment>
-                          })}
-                        </div>
-                        <div className="mt-5">
-                          <button onClick={addGroup} className="col-span-1 btn save">
-                            Add Group
-                          </button>
-                          <button
-                            className="col-span-1 btn cancel"
-                            /* disabled={groups.length === 1} */
-                            onClick={() => deleteGroup(groupid)}
-                            type="button"
-                          >
-                            Delete Group
-                          </button>
+                          <div className="h-10">
+                            <ul>
+                              <Draggable
+                                className=""
+                                draggableId={groupid.toString()}
+                                key={groupid}
+                                index={index + idx}
+                              >
+                                {(provided, snapshot) => (
+                                  <li
+                                    {...provided.draggableProps}
+                                    {...provided.dragHandleProps}
+                                    ref={provided.innerRef}
+                                    style={getStyle(provided.draggableProps.style, snapshot)}
+                                  ></li>
+                                )}
+                              </Draggable>
+                            </ul>
+                          </div>
                         </div>
                       </div>
-                    </>
-                    {provided.placeholder}
-                  </div>
-                )}
-              </Droppable>
-            </Fragment>
-          )
-        })}
+                    </div>
+                  ))}
+                </Fragment>
+              </>
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
       </DragDropContext>
     </>
   )

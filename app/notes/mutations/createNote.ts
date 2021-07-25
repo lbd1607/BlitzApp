@@ -11,7 +11,6 @@ const CreateNote = z.object({
 export default resolver.pipe(resolver.zod(CreateNote), resolver.authorize(), async (input) => {
   // TODO: in multi-tenant app, you must add validation to ensure correct tenant
   const note = await db.notes.create({ data: input })
-  // const note = await db.notes.create({ data: { ...input, itemOrder: id} })
 
   return note
 })
