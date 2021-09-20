@@ -7,6 +7,7 @@ const UpdateNote = z.object({
   noteName: z.string(),
   noteBody: z.string(),
   itemOrder: z.number(),
+  /*  group: z.number(), */
 })
 
 export default resolver.pipe(

@@ -69,6 +69,7 @@ model Notes {
   noteName  String  @unique
   noteBody  String?
   itemOrder Int?
+  group     Int?
 }
 
 // model Note {

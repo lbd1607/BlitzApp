@@ -37,6 +37,15 @@ CREATE TABLE "Token" (
     FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+-- CreateTable
+CREATE TABLE "Notes" (
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "noteName" TEXT NOT NULL,
+    "noteBody" TEXT,
+    "itemOrder" INTEGER,
+    "group" INTEGER
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User.email_unique" ON "User"("email");
 
@@ -45,3 +54,6 @@ CREATE UNIQUE INDEX "Session.handle_unique" ON "Session"("handle");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Token.hashedToken_type_unique" ON "Token"("hashedToken", "type");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Notes.noteName_unique" ON "Notes"("noteName");
