@@ -74,22 +74,28 @@ export const NotesList = () => {
     [uuid()]: {
       name: "Unassigned",
       items: Array.from(noteItem),
+      // {...noteItem.groupOrder[0]},
+      groupOrder: 0,
     },
     [uuid()]: {
       name: "Week 1",
       items: [],
+      groupOrder: 1,
     },
     [uuid()]: {
       name: "Week 2",
       items: [],
+      groupOrder: 2,
     },
     [uuid()]: {
       name: "Week 3",
       items: [],
+      groupOrder: 3,
     },
     [uuid()]: {
       name: "Week 4",
       items: [],
+      groupOrder: 4,
     },
   }
 
@@ -97,51 +103,53 @@ export const NotesList = () => {
 
   //Handle onDragEnd so state changes are persisted in UI and can be posted to DB with hooks
   const handleOnDragEnd = (result, groups, setGroups) => {
-    const src = result.source
-    const dest = result.destination
-    if (!result.destination) return
+    const start = result.source
+    const end = result.destination
+    const startId = start.droppableId
+    const endId = end.droppableId
+    //If dropped outside the droppable area, return (ignores move)
+    if (!end) return
 
-    if (src.droppableId !== dest.droppableId) {
-      const srcGroup = groups[src.droppableId]
-      const destGroup = groups[dest.droppableId]
-      const srcItems = [...srcGroup.items]
-      const destItems = [...destGroup.items]
-      const [removedItem] = srcItems.splice(src.index, 1)
-      destItems.splice(dest.index, 0, removedItem || src.index)
+    if (startId === endId) {
+      const endGroup = groups[startId]
+      const endItems = [...endGroup.items]
+      const [removedItem] = endItems.splice(start.index, 1)
+      endItems.splice(end.index, 0, removedItem || start.index)
+      //Update state of start group only
       setGroups({
         ...groups,
-        [src.droppableId]: {
-          ...srcGroup,
-          items: srcItems,
-        },
-        [dest.droppableId]: {
-          ...destGroup,
-          items: destItems,
+        [startId]: {
+          ...endGroup,
+          items: endItems,
         },
       })
-
-      sendOrderToSrcGroup(removedItem, srcItems, srcGroup)
-      sendOrderToDestGroup(removedItem, destItems, destGroup)
-      console.log(destGroup, srcItems, destItems)
+      gatherItemOrder(removedItem, endItems, endGroup)
     } else {
-      const destGroup = groups[src.droppableId]
-      const destItems = [...destGroup.items]
-      const [removedItem] = destItems.splice(src.index, 1)
-      destItems.splice(dest.index, 0, removedItem || src.index)
+      const startGroup = groups[startId]
+      const startItems = [...startGroup.items]
+      const [removedItem] = startItems.splice(start.index, 1)
+      const endGroup = groups[endId]
+      const endItems = [...endGroup.items]
+      endItems.splice(end.index, 0, removedItem || start.index)
+      //Update state of start and end groups
       setGroups({
         ...groups,
-        [src.droppableId]: {
-          ...destGroup,
-          items: destItems,
+        [startId]: {
+          ...startGroup,
+          items: startItems,
+        },
+        [endId]: {
+          ...endGroup,
+          items: endItems,
         },
       })
-      sendOrderToSrcGroup(removedItem, destItems, destGroup)
-      console.log(destGroup, destItems)
+      gatherItemOrder(removedItem, endItems, endGroup)
+      // gatherGroupOrder(removedItem, endGroup)
     }
   }
 
   //Gather data to send the new order to postUpdatedOrder so it can be posted to the database
-  const sendOrderToSrcGroup = (removedItem, newItems, newGroups) => {
+  const gatherItemOrder = (removedItem, newItems, newGroups) => {
     if (!removedItem) return
 
     for (let i = 0; i < newItems.length; i++) {
@@ -150,33 +158,12 @@ export const NotesList = () => {
       if (item) {
         var newOrder = newItems.indexOf(item)
         item.itemOrder = newOrder
+        item.groupOrder = newGroups.groupOrder
       }
+
       postUpdatedOrder(item)
     }
-    /*   for (let j = 0; j < newGroups.length; j++) {
-      const group = newGroups[j]
-
-      if (group) {
-        var newGroupOrder = newGroups.indexOf(group)
-        group.group = newGroupOrder
-      }
-      postUpdatedOrder(group)
-    } */
-    updateNoteItem(newItems)
-  }
-  //Gather data to send the new order to postUpdatedOrder so it can be posted to the database
-  const sendOrderToDestGroup = (removedItem, newItems, newGroups) => {
-    if (!removedItem) return
-
-    for (let i = 0; i < newItems.length; i++) {
-      const item = newItems[i]
-
-      if (item) {
-        var newOrder = newItems.indexOf(item)
-        item.itemOrder = newOrder
-      }
-      postUpdatedOrder(item)
-    }
+    console.log(newGroups)
     updateNoteItem(newItems)
   }
 
@@ -188,7 +175,6 @@ export const NotesList = () => {
     try {
       const updated = await updateNoteMutation({
         id: noteId,
-        /*  group: group, */
         ...values,
       })
       await updated

@@ -65,11 +65,11 @@ model Token {
 // }
 
 model Notes {
-  id        Int     @id @default(autoincrement())
-  noteName  String  @unique
-  noteBody  String?
-  itemOrder Int?
-  group     Int?
+  id         Int     @id @default(autoincrement())
+  noteName   String  @unique
+  noteBody   String?
+  itemOrder  Int?
+  groupOrder Int?
 }
 
 // model Note {
