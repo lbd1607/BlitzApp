@@ -20,20 +20,6 @@ import updateNote from "app/notes/mutations/updateNote"
 import { FORM_ERROR } from "app/notes/components/NoteForm"
 import { v4 as uuid } from "uuid"
 
-/* import {
-  addGroup,
-  deleteGroup,
-  getStyle,
-  groups,
-  setGroups,
-  noteData,
-  noteId,
-  noteItem,
-  randid,
-  handleOnDragEnd,
-  noteItems,
-} from "./utils" */
-
 const ITEMS_PER_PAGE = 100
 
 export const NotesList = () => {
@@ -73,28 +59,29 @@ export const NotesList = () => {
   const groupList = {
     [uuid()]: {
       name: "Unassigned",
-      items: Array.from(noteItem),
-      // {...noteItem.groupOrder[0]},
+      items: Array.from(
+        noteItem.filter((noteItem) => noteItem.groupOrder === null || noteItem.groupOrder === 0)
+      ),
       groupOrder: 0,
     },
     [uuid()]: {
       name: "Week 1",
-      items: [],
+      items: Array.from(noteItem.filter((noteItem) => noteItem.groupOrder === 1)),
       groupOrder: 1,
     },
     [uuid()]: {
       name: "Week 2",
-      items: [],
+      items: Array.from(noteItem.filter((noteItem) => noteItem.groupOrder === 2)),
       groupOrder: 2,
     },
     [uuid()]: {
       name: "Week 3",
-      items: [],
+      items: Array.from(noteItem.filter((noteItem) => noteItem.groupOrder === 3)),
       groupOrder: 3,
     },
     [uuid()]: {
       name: "Week 4",
-      items: [],
+      items: Array.from(noteItem.filter((noteItem) => noteItem.groupOrder === 4)),
       groupOrder: 4,
     },
   }
@@ -163,7 +150,6 @@ export const NotesList = () => {
 
       postUpdatedOrder(item)
     }
-    console.log(newGroups)
     updateNoteItem(newItems)
   }
 
